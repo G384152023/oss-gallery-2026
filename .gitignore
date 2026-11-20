@@ -1,0 +1,15 @@
+# Gitで管理しない（コミットしない）ファイルの一覧です
+
+# macOS が，フォルダを開いたときに自動で作るファイル
+.DS_Store
+
+# Windows が，フォルダを開いたときに自動で作るファイル
+Thumbs.db
+desktop.ini
+
+# エディタが一時的に作るファイル
+*.swp
+*~
+
+# scripts/build.sh が作る一覧ページ（GitHub Actions が毎回作り直すので，コミットしない）
+_site/

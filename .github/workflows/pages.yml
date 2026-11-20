@@ -1,0 +1,52 @@
+# main ブランチに変更が入る（プルリクエストがマージされる）たびに，
+# scripts/build.sh で一覧ページを作り直して，GitHub Pages で公開します．
+#
+# はじめに1回だけ，リポジトリの Settings → Pages → Build and deployment の
+# Source を「GitHub Actions」にしておく必要があります．
+name: 一覧ページを公開する
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:  # Actions タブから，手動でも実行できるようにする
+
+# この処理に許可すること（ファイルを読む・Pages に公開する）
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 続けてマージしたときに，公開の処理が重ならないようにする
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: 一覧ページを作る
+    # Fork したリポジトリでは動かさない（大本のリポジトリだけで公開する）
+    if: github.repository == 'tomohitoy/oss-gallery-2026'
+    runs-on: ubuntu-latest
+    steps:
+      - name: リポジトリのファイルを取り出す
+        uses: actions/checkout@v7
+
+      - name: members フォルダから一覧ページを作る
+        run: bash scripts/build.sh
+
+      - name: できたページ（_site フォルダ）を預ける
+        uses: actions/upload-pages-artifact@v5
+        with:
+          path: _site
+
+  deploy:
+    name: GitHub Pages で公開する
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: 公開する
+        id: deployment
+        uses: actions/deploy-pages@v5
